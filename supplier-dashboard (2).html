@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PLK-RBI Supplier Approval Dashboard</title>
+<style>
+:root {
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-dark:#0C447C;
+  --green:#0F6E56;--green-light:#E1F5EE;--green-dark:#085041;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --amber:#BA7517;--amber-light:#FAEEDA;--amber-border:#FAC775;--amber-text:#633806;
+  --grey:#6B6B6B;--grey-light:#F0F0EE;
+  --bg:#fff;--bg2:#f6f6f4;--bg3:#efefed;
+  --text:#1a1a18;--text2:#5f5e5a;--text3:#9a9890;
+  --border:rgba(0,0,0,0.10);--border2:rgba(0,0,0,0.18);
+  --radius:8px;--radius-lg:12px;
+  --font:-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg3);color:var(--text);font-size:14px}
+
+/* Layout */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:210px;background:var(--bg);border-right:1px solid var(--border);padding:1.25rem 1rem;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;gap:2px}
+.main{flex:1;padding:1.5rem;min-width:0;overflow-x:hidden}
+
+/* Sidebar */
+.brand{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.brand .logo{width:34px;height:34px;background:var(--red);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.brand div h2{font-size:13px;font-weight:700;color:var(--text)}
+.brand div p{font-size:11px;color:var(--text3)}
+.nav-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;padding:8px 8px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--radius);cursor:pointer;font-size:13px;color:var(--text2);transition:all .12s;user-select:none}
+.nav-item:hover{background:var(--bg2);color:var(--text)}
+.nav-item.active{background:var(--blue-light);color:var(--blue-dark);font-weight:600}
+.nav-item .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.nav-item .cnt{margin-left:auto;background:var(--bg3);border-radius:999px;padding:1px 7px;font-size:11px;color:var(--text2);min-width:20px;text-align:center}
+.nav-item.active .cnt{background:var(--blue);color:#fff}
+.sidebar-footer{margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;gap:12px;flex-wrap:wrap}
+.topbar h1{font-size:18px;font-weight:700}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.search{padding:7px 12px;border:1px solid var(--border2);border-radius:var(--radius);font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text);width:230px;outline:none}
+.search:focus{border-color:var(--blue)}
+.btn{padding:7px 16px;border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:var(--font);font-weight:500;border:1px solid var(--border2);background:var(--bg);color:var(--text2);transition:all .12s;white-space:nowrap}
+.btn:hover{background:var(--bg2)}
+.btn-primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+
+/* Metrics */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.25rem}
+.metric{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.9rem 1rem}
+.metric .ml{font-size:11px;color:var(--text3);margin-bottom:3px}
+.metric .mv{font-size:22px;font-weight:700;color:var(--text)}
+.metric .ms{font-size:11px;color:var(--text3);margin-top:1px}
+
+/* Filter tabs */
+.filter-row{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.ftab{padding:5px 13px;border-radius:999px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:var(--bg);color:var(--text2);transition:all .12s;user-select:none}
+.ftab:hover{background:var(--bg2)}
+.ftab.active{background:var(--blue);border-color:var(--blue);color:#fff}
+
+/* Table card */
+.table-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;border-bottom:1px solid var(--border)}
+.table-hdr h2{font-size:14px;font-weight:600}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th{padding:9px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:var(--bg2);white-space:nowrap}
+th.step-hdr{text-align:center;border-left:1px solid var(--border)}
+th.group-hdr{text-align:center;background:#f0f0ee;font-size:10px;border-left:2px solid var(--border2)}
+td{padding:9px 10px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle}
+td.step-cell{text-align:center;border-left:1px solid var(--border)}
+td.group-start{border-left:2px solid var(--border2)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg2);cursor:pointer}
+.ref-cell{font-weight:700;color:var(--blue);font-size:12px;white-space:nowrap}
+
+/* Step indicators */
+.step-dot{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700}
+.step-done{background:var(--green-light);color:var(--green)}
+.step-ongoing{background:var(--amber-light);color:var(--amber)}
+.step-not-started{background:#f0f0ee;color:var(--text3)}
+.step-na{background:#f0f0ee;color:var(--text3);font-style:italic}
+
+/* Progress bar */
+.prog-wrap{display:flex;align-items:center;gap:6px;min-width:90px}
+.prog-bar{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .3s}
+.prog-pct{font-size:11px;color:var(--text2);white-space:nowrap;min-width:28px}
+
+/* Status badge */
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-pending{background:var(--amber-light);color:var(--amber-text)}
+.badge-review{background:var(--blue-light);color:var(--blue-dark)}
+.badge-approved{background:var(--green-light);color:var(--green)}
+.badge-cond{background:#EAF3DE;color:#3B6D11}
+.badge-rejected{background:var(--red-light);color:var(--red)}
+.badge-hold{background:#f0f0ee;color:var(--grey)}
+.pri-asap{color:var(--red);font-weight:700}
+.pri-normal{color:var(--blue)}
+.pri-low{color:var(--green)}
+
+/* Detail panel */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:99}
+.panel{position:fixed;top:0;right:-540px;width:520px;max-width:95vw;height:100vh;background:var(--bg);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:100;transition:right .25s;overflow-y:auto;padding:1.5rem}
+.panel.open{right:0}
+.panel-hdr{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;gap:8px}
+.panel-hdr h2{font-size:15px;font-weight:700;line-height:1.4}
+.close-btn{background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);flex-shrink:0;padding:2px}
+.ps{margin-bottom:1.25rem}
+.ps h3{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.prow{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;gap:12px}
+.prow .pl{color:var(--text2);flex-shrink:0}
+.prow .pv{color:var(--text);text-align:right;word-break:break-word}
+
+/* Approval steps grid in panel */
+.steps-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:1rem}
+.step-box{border:1px solid var(--border);border-radius:var(--radius);padding:8px 6px;text-align:center}
+.step-box .sb-label{font-size:10px;color:var(--text3);font-weight:600;margin-bottom:5px}
+.step-box .sb-val{font-size:18px;font-weight:700}
+.step-box.done{border-color:var(--green);background:var(--green-light)}
+.step-box.done .sb-val{color:var(--green)}
+.step-box.ongoing{border-color:var(--amber);background:var(--amber-light)}
+.step-box.ongoing .sb-val{color:var(--amber)}
+.step-box.not-started{border-color:var(--border2);background:var(--bg2)}
+.step-box.not-started .sb-val{color:var(--text3)}
+.step-box.na{border-color:var(--border);background:var(--bg2)}
+.step-box.na .sb-val{color:var(--text3)}
+
+/* Status update */
+.status-select{padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--font);font-size:13px;background:var(--bg);color:var(--text);width:100%}
+.remarks-box{width:100%;padding:8px 10px;border:1px solid var(--border2);border-radius:var(--radius);font-family:var(--font);font-size:13px;resize:vertical;min-height:60px;background:var(--bg);color:var(--text);margin-top:6px}
+.save-btn{padding:8px 18px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:13px;cursor:pointer;font-family:var(--font);font-weight:600;margin-top:8px}
+.save-btn:hover{background:var(--blue-dark)}
+.save-msg{font-size:12px;margin-left:10px;color:var(--green)}
+
+/* Step update grid */
+.step-update-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.step-update-box{border:1px solid var(--border2);border-radius:var(--radius);padding:6px;text-align:center}
+.step-update-box label{font-size:10px;color:var(--text3);font-weight:600;display:block;margin-bottom:4px}
+.step-update-box select{width:100%;border:none;background:transparent;font-size:12px;font-family:var(--font);color:var(--text);text-align:center;cursor:pointer;outline:none}
+
+/* Misc */
+.empty{text-align:center;padding:3rem;color:var(--text3)}
+.empty .big{font-size:32px;margin-bottom:8px}
+.spinner{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;margin:2rem auto;display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text2);margin-bottom:1rem;align-items:center}
+.legend-item{display:flex;align-items:center;gap:5px}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel">
+  <div class="panel-hdr">
+    <h2 id="panel-title">Request details</h2>
+    <button class="close-btn" onclick="closePanel()">✕</button>
+  </div>
+  <div id="panel-body"></div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">PLK</div>
+      <div>
+        <h2>RBI SPEQ</h2>
+        <p>Approval Dashboard</p>
+      </div>
+    </div>
+
+    <div class="nav-label">Status</div>
+    <div class="nav-item active" id="nav-all" onclick="setNav('all')">
+      <span class="dot" style="background:var(--blue)"></span>All requests
+      <span class="cnt" id="cnt-all">0</span>
+    </div>
+    <div class="nav-item" id="nav-pending" onclick="setNav('pending')">
+      <span class="dot" style="background:var(--amber)"></span>Pending
+      <span class="cnt" id="cnt-pending">0</span>
+    </div>
+    <div class="nav-item" id="nav-review" onclick="setNav('review')">
+      <span class="dot" style="background:var(--blue)"></span>In review
+      <span class="cnt" id="cnt-review">0</span>
+    </div>
+    <div class="nav-item" id="nav-approved" onclick="setNav('approved')">
+      <span class="dot" style="background:var(--green)"></span>Approved
+      <span class="cnt" id="cnt-approved">0</span>
+    </div>
+    <div class="nav-item" id="nav-hold" onclick="setNav('hold')">
+      <span class="dot" style="background:var(--grey)"></span>On hold
+      <span class="cnt" id="cnt-hold">0</span>
+    </div>
+    <div class="nav-item" id="nav-rejected" onclick="setNav('rejected')">
+      <span class="dot" style="background:var(--red)"></span>Rejected
+      <span class="cnt" id="cnt-rejected">0</span>
+    </div>
+
+    <div class="nav-label">Priority</div>
+    <div class="nav-item" id="nav-asap" onclick="setNav('asap')">
+      <span class="dot" style="background:var(--red)"></span>ASAP
+      <span class="cnt" id="cnt-asap">0</span>
+    </div>
+    <div class="nav-item" id="nav-normal" onclick="setNav('normal')">
+      <span class="dot" style="background:var(--blue)"></span>Normal
+      <span class="cnt" id="cnt-normal">0</span>
+    </div>
+    <div class="nav-item" id="nav-low" onclick="setNav('low')">
+      <span class="dot" style="background:var(--green)"></span>Non-priority
+      <span class="cnt" id="cnt-low">0</span>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn btn-primary" style="width:100%;font-size:12px" onclick="loadData()">&#8635; Refresh data</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="view-title">All requests</h1>
+        <p style="font-size:12px;color:var(--text3);margin-top:2px">PLK-RBI Supplier Endorsement &amp; Qualification (SPEQ)</p>
+      </div>
+      <div class="topbar-right">
+        <input type="text" class="search" id="search" placeholder="Search company, item, ref..." oninput="renderTable()" />
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics">
+      <div class="metric"><div class="ml">Total requests</div><div class="mv" id="m-total">—</div><div class="ms">submitted</div></div>
+      <div class="metric"><div class="ml">Pending</div><div class="mv" id="m-pending" style="color:var(--amber)">—</div><div class="ms">awaiting action</div></div>
+      <div class="metric"><div class="ml">In review</div><div class="mv" id="m-review" style="color:var(--blue)">—</div><div class="ms">being evaluated</div></div>
+      <div class="metric"><div class="ml">Approved</div><div class="mv" id="m-approved" style="color:var(--green)">—</div><div class="ms">fully cleared</div></div>
+      <div class="metric"><div class="ml">ASAP</div><div class="mv" id="m-asap" style="color:var(--red)">—</div><div class="ms">urgent</div></div>
+      <div class="metric"><div class="ml">On hold</div><div class="mv" id="m-hold" style="color:var(--grey)">—</div><div class="ms">paused</div></div>
+    </div>
+
+    <!-- Category filters -->
+    <div class="filter-row">
+      <div class="ftab active" onclick="setFilter('all',this)">All categories</div>
+      <div class="ftab" onclick="setFilter('Poultry',this)">Poultry</div>
+      <div class="ftab" onclick="setFilter('Core item',this)">Core item</div>
+      <div class="ftab" onclick="setFilter('Non-core item',this)">Non-core item</div>
+      <div class="ftab" onclick="setFilter('LTO food',this)">LTO food</div>
+      <div class="ftab" onclick="setFilter('Packaging',this)">Packaging</div>
+      <div class="ftab" onclick="setFilter('Equipment & machinery',this)">Equipment</div>
+      <div class="ftab" onclick="setFilter('Smallwares',this)">Smallwares</div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <strong style="font-size:11px;color:var(--text3)">LEGEND:</strong>
+      <div class="legend-item"><span class="step-dot step-done">1</span> Done</div>
+      <div class="legend-item"><span class="step-dot step-ongoing">O</span> Ongoing</div>
+      <div class="legend-item"><span class="step-dot step-not-started">X</span> Not started</div>
+      <div class="legend-item"><span class="step-dot step-na">—</span> N/A</div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-hdr">
+        <h2 id="table-title">Submissions</h2>
+        <span id="row-count" style="font-size:12px;color:var(--text3)"></span>
+      </div>
+      <div class="tbl-wrap">
+        <div id="table-container">
+          <div class="empty"><div class="big">📋</div><p>Loading data...</p></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZB0zuTEhVNhTSjJfs4fXK7xnXlCIt8SXCqswk3L6suDIV8ZMk6p0Dx1JUxLhEi3Q1/exec';
+var allRows = [];
+var curNav = 'all';
+var curFilter = 'all';
+
+// SPEQ approval steps aligned with PLK-RBI dashboard
+var CORP_STEPS = ['CIW','MNDA','MPDA','MTC'];
+var FAC_STEPS = ['CQ','FA'];
+var PROD_STEPS = ['QAP','FIQ','Recipe Validation','RM Supplier'];
+var ALL_STEPS = CORP_STEPS.concat(FAC_STEPS).concat(PROD_STEPS);
+
+window.onload = function() { loadData(); };
+
+function loadData() {
+  document.getElementById('table-container').innerHTML = '<div style="text-align:center;padding:2rem"><div class="spinner"></div><p style="font-size:13px;color:var(--text3);margin-top:8px">Loading submissions...</p></div>';
+  fetch(SCRIPT_URL + '?action=get')
+    .then(function(r){ return r.json(); })
+    .then(function(data) {
+      allRows = (data.rows || []).map(function(r) {
+        // Parse step statuses from products JSON if stored, or from dedicated fields
+        r.stepData = parseSteps(r);
+        r.completion = calcCompletion(r.stepData);
+        return r;
+      });
+      updateCounts();
+      updateMetrics();
+      renderTable();
+    })
+    .catch(function() {
+      document.getElementById('table-container').innerHTML = '<div class="empty"><div class="big">⚠️</div><p>Could not load data. Check your connection.</p></div>';
+    });
+}
+
+function parseSteps(r) {
+  // Try to parse step statuses from the speqSteps field, fallback to default
+  var steps = {};
+  try {
+    if (r.speqSteps) { steps = JSON.parse(r.speqSteps); return steps; }
+  } catch(e){}
+  ALL_STEPS.forEach(function(s){ steps[s] = 'X'; });
+  return steps;
+}
+
+function calcCompletion(stepData) {
+  var total = 0; var done = 0;
+  ALL_STEPS.forEach(function(s) {
+    var v = (stepData[s]||'X').toString().toUpperCase();
+    if (v === '-' || v === 'N/A') return; // N/A - skip
+    total++;
+    if (v === '1' || v === 'DONE') done++;
+    else if (v === 'O' || v === 'ONGOING') done += 0.5;
+  });
+  return total > 0 ? done / total : 0;
+}
+
+function stepClass(val) {
+  var v = (val||'X').toString().toUpperCase().trim();
+  if (v === '1' || v === 'DONE') return 'step-done';
+  if (v === 'O' || v === 'ONGOING') return 'step-ongoing';
+  if (v === '-' || v === 'N/A') return 'step-na';
+  return 'step-not-started';
+}
+
+function stepLabel(val) {
+  var v = (val||'X').toString().toUpperCase().trim();
+  if (v === '1' || v === 'DONE') return '1';
+  if (v === 'O' || v === 'ONGOING') return 'O';
+  if (v === '-' || v === 'N/A') return '—';
+  return 'X';
+}
+
+function progColor(pct) {
+  if (pct >= 1) return var_('--green');
+  if (pct >= 0.6) return var_('--blue');
+  if (pct >= 0.3) return var_('--amber');
+  return var_('--red');
+}
+function var_(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function updateCounts() {
+  var c = {all:allRows.length,pending:0,review:0,approved:0,hold:0,rejected:0,asap:0,normal:0,low:0};
+  allRows.forEach(function(r){
+    var s = (r.status||'Pending').toLowerCase();
+    if (s==='pending') c.pending++;
+    else if (s==='in review') c.review++;
+    else if (s==='approved'||s==='conditionally approved') c.approved++;
+    else if (s==='on hold') c.hold++;
+    else if (s==='rejected') c.rejected++;
+    var p = (r.priority||'').toLowerCase();
+    if (p==='asap') c.asap++;
+    else if (p==='normal') c.normal++;
+    else if (p==='non-priority') c.low++;
+  });
+  Object.keys(c).forEach(function(k){
+    var el = document.getElementById('cnt-'+k);
+    if (el) el.textContent = c[k];
+  });
+}
+
+function updateMetrics() {
+  document.getElementById('m-total').textContent = allRows.length;
+  document.getElementById('m-pending').textContent = allRows.filter(function(r){return (r.status||'').toLowerCase()==='pending';}).length;
+  document.getElementById('m-review').textContent = allRows.filter(function(r){return (r.status||'').toLowerCase()==='in review';}).length;
+  document.getElementById('m-approved').textContent = allRows.filter(function(r){var s=(r.status||'').toLowerCase();return s==='approved'||s==='conditionally approved';}).length;
+  document.getElementById('m-asap').textContent = allRows.filter(function(r){return (r.priority||'').toLowerCase()==='asap';}).length;
+  document.getElementById('m-hold').textContent = allRows.filter(function(r){return (r.status||'').toLowerCase()==='on hold';}).length;
+}
+
+function setNav(nav) {
+  curNav = nav;
+  document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('nav-'+nav).classList.add('active');
+  var titles={all:'All requests',pending:'Pending',review:'In review',approved:'Approved',hold:'On hold',rejected:'Rejected',asap:'ASAP priority',normal:'Normal priority',low:'Non-priority'};
+  document.getElementById('view-title').textContent = titles[nav]||nav;
+  renderTable();
+}
+
+function setFilter(cat, el) {
+  curFilter = cat;
+  document.querySelectorAll('.ftab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  var q = (document.getElementById('search').value||'').toLowerCase();
+  var rows = allRows.filter(function(r){
+    var s = (r.status||'Pending').toLowerCase();
+    var p = (r.priority||'').toLowerCase();
+    if (curNav==='pending' && s!=='pending') return false;
+    if (curNav==='review' && s!=='in review') return false;
+    if (curNav==='approved' && s!=='approved' && s!=='conditionally approved') return false;
+    if (curNav==='hold' && s!=='on hold') return false;
+    if (curNav==='rejected' && s!=='rejected') return false;
+    if (curNav==='asap' && p!=='asap') return false;
+    if (curNav==='normal' && p!=='normal') return false;
+    if (curNav==='low' && p!=='non-priority') return false;
+    if (curFilter!=='all' && r.category!==curFilter) return false;
+    if (q && !JSON.stringify(r).toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('row-count').textContent = rows.length+' result'+(rows.length!==1?'s':'');
+
+  if (!rows.length) {
+    document.getElementById('table-container').innerHTML = '<div class="empty"><div class="big">🔍</div><p>No matching requests found.</p></div>';
+    return;
+  }
+
+  var html = '<table>';
+  // Header — two rows
+  html += '<thead>';
+  html += '<tr>';
+  html += '<th rowspan="2">Ref</th>';
+  html += '<th rowspan="2">Company</th>';
+  html += '<th rowspan="2">Category</th>';
+  html += '<th rowspan="2">Requestor</th>';
+  html += '<th rowspan="2" class="group-hdr">Priority</th>';
+  html += '<th colspan="4" class="group-hdr" style="color:#185FA5">Corporate Approval</th>';
+  html += '<th colspan="2" class="group-hdr" style="color:#0F6E56">Facility Approval</th>';
+  html += '<th colspan="4" class="group-hdr" style="color:#BA7517">Product Approval</th>';
+  html += '<th rowspan="2">% Done</th>';
+  html += '<th rowspan="2">Status</th>';
+  html += '</tr>';
+  html += '<tr>';
+  CORP_STEPS.forEach(function(s,i){ html += '<th class="step-hdr'+(i===0?' group-start':'')+'">'+s+'</th>'; });
+  FAC_STEPS.forEach(function(s,i){ html += '<th class="step-hdr'+(i===0?' group-start':'')+'">'+s+'</th>'; });
+  PROD_STEPS.forEach(function(s,i){
+    var short = s==='Recipe Validation'?'Rec.Val':s==='RM Supplier'?'RM Sup':s;
+    html += '<th class="step-hdr'+(i===0?' group-start':'')+'" title="'+s+'">'+short+'</th>';
+  });
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    var pct = r.completion || 0;
+    var fillColor = pct>=1?'#0F6E56':pct>=0.6?'#185FA5':pct>=0.3?'#BA7517':'#A32D2D';
+    var priClass = (r.priority||'').toLowerCase()==='asap'?'pri-asap':(r.priority||'').toLowerCase()==='normal'?'pri-normal':'pri-low';
+    var s = (r.status||'Pending').toLowerCase();
+    var badgeClass = s==='approved'?'badge-approved':s==='conditionally approved'?'badge-cond':s==='in review'?'badge-review':s==='on hold'?'badge-hold':s==='rejected'?'badge-rejected':'badge-pending';
+    var statusLabel = r.status||'Pending';
+
+    html += '<tr onclick="openPanel(\''+escAttr(r.ref)+'\')">';
+    html += '<td><span class="ref-cell">'+esc(r.ref)+'</span></td>';
+    html += '<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+escAttr(r.companyName)+'">'+esc(r.companyName||'—')+'</td>';
+    html += '<td style="white-space:nowrap">'+esc(r.category||'—')+'</td>';
+    html += '<td style="white-space:nowrap">'+esc(r.requestor||'—')+'</td>';
+    html += '<td class="group-start" style="text-align:center"><span class="'+priClass+'">'+esc(r.priority||'—')+'</span></td>';
+
+    // Corp steps
+    CORP_STEPS.forEach(function(s,i) {
+      var val = r.stepData[s]||'X';
+      html += '<td class="step-cell'+(i===0?' group-start':'')+'">'
+        +'<span class="step-dot '+stepClass(val)+'">'+stepLabel(val)+'</span></td>';
+    });
+    // Fac steps
+    FAC_STEPS.forEach(function(s,i) {
+      var val = r.stepData[s]||'X';
+      html += '<td class="step-cell'+(i===0?' group-start':'')+'">'
+        +'<span class="step-dot '+stepClass(val)+'">'+stepLabel(val)+'</span></td>';
+    });
+    // Prod steps
+    PROD_STEPS.forEach(function(s,i) {
+      var val = r.stepData[s]||'X';
+      html += '<td class="step-cell'+(i===0?' group-start':'')+'">'
+        +'<span class="step-dot '+stepClass(val)+'">'+stepLabel(val)+'</span></td>';
+    });
+
+    // Progress
+    html += '<td><div class="prog-wrap">'
+      +'<div class="prog-bar"><div class="prog-fill" style="width:'+Math.round(pct*100)+'%;background:'+fillColor+'"></div></div>'
+      +'<span class="prog-pct">'+Math.round(pct*100)+'%</span>'
+      +'</div></td>';
+
+    html += '<td><span class="badge '+badgeClass+'">'+esc(statusLabel)+'</span></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('table-container').innerHTML = html;
+}
+
+function openPanel(ref) {
+  var r = allRows.find(function(x){return x.ref===ref;});
+  if (!r) return;
+  document.getElementById('panel-title').textContent = r.ref + ' — ' + (r.companyName||'');
+
+  var pct = r.completion||0;
+  var s = (r.status||'Pending').toLowerCase();
+  var badgeClass = s==='approved'?'badge-approved':s==='conditionally approved'?'badge-cond':s==='in review'?'badge-review':s==='on hold'?'badge-hold':s==='rejected'?'badge-rejected':'badge-pending';
+  var priClass = (r.priority||'').toLowerCase()==='asap'?'pri-asap':(r.priority||'').toLowerCase()==='normal'?'pri-normal':'pri-low';
+
+  var html = '';
+
+  // Status + priority
+  html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">'
+    +'<span class="badge '+badgeClass+'">'+esc(r.status||'Pending')+'</span>'
+    +(r.priority?'<span class="'+priClass+'" style="font-size:13px;font-weight:600">'+esc(r.priority)+'</span>':'')
+    +'<span style="font-size:13px;color:var(--text2)">'+Math.round(pct*100)+'% complete</span>'
+    +'</div>';
+
+  // Progress bar
+  html += '<div class="prog-bar" style="height:8px;margin-bottom:16px">'
+    +'<div class="prog-fill" style="width:'+Math.round(pct*100)+'%;background:'+(pct>=1?'#0F6E56':pct>=0.6?'#185FA5':pct>=0.3?'#BA7517':'#A32D2D')+'"></div>'
+    +'</div>';
+
+  // Approval steps
+  html += '<div class="ps"><h3>Corporate Approval</h3><div class="steps-grid">';
+  CORP_STEPS.forEach(function(s){
+    var val = r.stepData[s]||'X';
+    html += '<div class="step-box '+stepClass(val).replace('step-','').replace('not-started','not-started')+'">'
+      +'<div class="sb-label">'+s+'</div>'
+      +'<div class="sb-val">'+stepLabel(val)+'</div></div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="ps"><h3>Facility Approval</h3><div class="steps-grid">';
+  FAC_STEPS.forEach(function(s){
+    var val = r.stepData[s]||'X';
+    html += '<div class="step-box '+stepClass(val).replace('step-','')+'"><div class="sb-label">'+s+'</div><div class="sb-val">'+stepLabel(val)+'</div></div>';
+  });
+  html += '</div></div>';
+
+  html += '<div class="ps"><h3>Product Approval</h3><div class="steps-grid">';
+  PROD_STEPS.forEach(function(s){
+    var val = r.stepData[s]||'X';
+    var short = s==='Recipe Validation'?'Rec. Val':s==='RM Supplier'?'RM Sup':s;
+    html += '<div class="step-box '+stepClass(val).replace('step-','')+'"><div class="sb-label">'+short+'</div><div class="sb-val">'+stepLabel(val)+'</div></div>';
+  });
+  html += '</div></div>';
+
+  // Requestor info
+  html += '<div class="ps"><h3>Requestor</h3>';
+  html += prow('Name', r.requestor)+prow('Position', r.position)+prow('Department', r.department)+prow('Date', r.reqDate||'—');
+  html += '</div>';
+
+  // Company info
+  html += '<div class="ps"><h3>Corporate info</h3>';
+  html += prow('Company', r.companyName)+prow('Tel', r.companyTel)+prow('Address', r.companyAddr)
+    +prow('Contact', r.corpContact)+prow('Email', r.corpEmail)+prow('Phone', r.corpPhone);
+  html += '</div>';
+
+  html += '<div class="ps"><h3>Facility info</h3>';
+  html += prow('Address', r.facAddr)+prow('Tel', r.facTel)+prow('Contact', r.facContact)+prow('Email', r.facEmail);
+  html += '</div>';
+
+  html += '<div class="ps"><h3>Products submitted</h3>';
+  try {
+    var prods = JSON.parse(r.products||'[]');
+    if (prods.length) {
+      prods.forEach(function(p,i){
+        html += '<div style="padding:7px 0;border-bottom:1px solid var(--border)">'
+          +'<div style="font-weight:600;font-size:13px">'+(i+1)+'. '+esc(p.name||'—')+'</div>'
+          +'<div style="font-size:12px;color:var(--text2);margin-top:2px">'
+          +(p.price?'&#8369;'+Number(p.price).toLocaleString('en-PH',{minimumFractionDigits:2})+(p.uom?' / '+esc(p.uom):''):'No price')
+          +(p.moq?' &middot; MOQ: '+esc(p.moq):'')
+          +(p.files?' &middot; '+esc(p.files):'')
+          +'</div>'
+          +(p.desc?'<div style="font-size:12px;color:var(--text3);margin-top:1px">'+esc(p.desc)+'</div>':'')
+          +'</div>';
+      });
+    } else { html += '<p style="font-size:13px;color:var(--text3)">No products listed.</p>'; }
+  } catch(e){ html += '<p style="font-size:13px;color:var(--text3)">No products listed.</p>'; }
+  html += '</div>';
+
+  // Update approval steps
+  html += '<div class="ps"><h3>Update SPEQ approval steps</h3>';
+  html += '<p style="font-size:12px;color:var(--text3);margin-bottom:8px">Set each step: 1 = Done, O = Ongoing, X = Not started, - = N/A</p>';
+  html += '<div style="margin-bottom:6px;font-size:11px;font-weight:600;color:var(--blue)">Corporate</div>';
+  html += '<div class="step-update-grid">';
+  CORP_STEPS.forEach(function(s){
+    var val = r.stepData[s]||'X';
+    html += '<div class="step-update-box"><label>'+s+'</label>'
+      +'<select id="su-'+encodeKey(s)+'" onchange="updateStepLocally(\''+escAttr(ref)+'\',\''+escAttr(s)+'\',this.value)">'
+      +stepOpts(val)+'</select></div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-bottom:6px;font-size:11px;font-weight:600;color:var(--green)">Facility</div>';
+  html += '<div class="step-update-grid">';
+  FAC_STEPS.forEach(function(s){
+    var val = r.stepData[s]||'X';
+    html += '<div class="step-update-box"><label>'+s+'</label>'
+      +'<select id="su-'+encodeKey(s)+'" onchange="updateStepLocally(\''+escAttr(ref)+'\',\''+escAttr(s)+'\',this.value)">'
+      +stepOpts(val)+'</select></div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-bottom:6px;font-size:11px;font-weight:600;color:var(--amber)">Product</div>';
+  html += '<div class="step-update-grid">';
+  PROD_STEPS.forEach(function(s){
+    var val = r.stepData[s]||'X';
+    var short = s==='Recipe Validation'?'Rec.Val':s==='RM Supplier'?'RM Sup':s;
+    html += '<div class="step-update-box"><label title="'+s+'">'+short+'</label>'
+      +'<select id="su-'+encodeKey(s)+'" onchange="updateStepLocally(\''+escAttr(ref)+'\',\''+escAttr(s)+'\',this.value)">'
+      +stepOpts(val)+'</select></div>';
+  });
+  html += '</div></div>';
+
+  // Status + remarks update
+  html += '<div class="ps"><h3>Overall status &amp; remarks</h3>';
+  html += '<select class="status-select" id="ps-status">'
+    +['Pending','In review','Approved','Conditionally Approved','On hold','Rejected'].map(function(opt){
+      return '<option value="'+opt+'"'+(r.status===opt?' selected':'')+'>'+opt+'</option>';
+    }).join('')
+    +'</select>';
+  html += '<textarea class="remarks-box" id="ps-remarks" placeholder="Add remarks, notes, or follow-up actions...">'+esc(r.remarks||'')+'</textarea>';
+  html += '<div style="display:flex;align-items:center">'
+    +'<button class="save-btn" onclick="saveRecord(\''+escAttr(ref)+'\')">Save changes</button>'
+    +'<span id="save-msg" class="save-msg"></span>'
+    +'</div>';
+  html += '</div>';
+
+  document.getElementById('panel-body').innerHTML = html;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('overlay').style.display='block';
+}
+
+function stepOpts(cur) {
+  var v = (cur||'X').toString().toUpperCase().trim();
+  return [['1','Done (1)'],['O','Ongoing (O)'],['X','Not started (X)'],['-','N/A (—)']].map(function(o){
+    return '<option value="'+o[0]+'"'+(v===o[0]?' selected':'')+'>'+o[1]+'</option>';
+  }).join('');
+}
+
+function encodeKey(s){ return s.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,''); }
+
+function updateStepLocally(ref, step, val) {
+  var r = allRows.find(function(x){return x.ref===ref;});
+  if (!r) return;
+  r.stepData[step] = val;
+  r.completion = calcCompletion(r.stepData);
+}
+
+function saveRecord(ref) {
+  var r = allRows.find(function(x){return x.ref===ref;});
+  if (!r) return;
+  var status = document.getElementById('ps-status').value;
+  var remarks = document.getElementById('ps-remarks').value;
+  var msg = document.getElementById('save-msg');
+  msg.textContent = 'Saving...'; msg.style.color='var(--text3)';
+
+  r.status = status; r.remarks = remarks;
+  r.speqSteps = JSON.stringify(r.stepData);
+  r.completion = calcCompletion(r.stepData);
+
+  fetch(SCRIPT_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({action:'updateStatus', ref:ref, status:status, remarks:remarks, speqSteps:r.speqSteps})
+  }).then(function(){
+    msg.textContent = '✅ Saved'; msg.style.color='var(--green)';
+    updateCounts(); updateMetrics(); renderTable();
+    setTimeout(function(){msg.textContent='';},2500);
+  }).catch(function(){
+    msg.textContent = '❌ Failed'; msg.style.color='var(--red)';
+  });
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').style.display='none';
+}
+
+function prow(label, val) {
+  return '<div class="prow"><span class="pl">'+label+'</span><span class="pv">'+(val&&val.trim?val.trim():val||'<em style="color:var(--text3)">—</em>')+'</span></div>';
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function setNav(nav) {
+  curNav = nav;
+  document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('nav-'+nav).classList.add('active');
+  var titles={all:'All requests',pending:'Pending',review:'In review',approved:'Approved',hold:'On hold',rejected:'Rejected',asap:'ASAP priority',normal:'Normal priority',low:'Non-priority'};
+  document.getElementById('view-title').textContent = titles[nav]||nav;
+  renderTable();
+}
+</script>
+</body>
+</html>

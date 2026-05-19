@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>New Supplier Onboarding Request</title>
+<style>
+  :root {
+    --blue: #185FA5; --blue-light: #E6F1FB; --blue-dark: #0C447C;
+    --green: #0F6E56; --green-light: #E1F5EE;
+    --red: #A32D2D; --red-light: #FCEBEB;
+    --amber-light: #FAEEDA; --amber-border: #FAC775; --amber-text: #633806;
+    --bg: #ffffff; --bg2: #f6f6f4; --bg3: #efefed;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #9a9890;
+    --border: rgba(0,0,0,0.12); --border2: rgba(0,0,0,0.22);
+    --radius: 8px; --radius-lg: 12px;
+    --font: -apple-system, 'Segoe UI', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg3); color: var(--text); font-size: 15px; }
+  .page { max-width: 760px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  .logo-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 2rem; }
+  .logo-bar .logo { width: 36px; height: 36px; background: var(--blue); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 15px; }
+  .logo-bar h1 { font-size: 18px; font-weight: 600; color: var(--text); }
+  .logo-bar p { font-size: 13px; color: var(--text2); }
+
+  /* Setup banner */
+  .setup-banner { background: var(--amber-light); border: 1px solid var(--amber-border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+  .setup-banner h3 { font-size: 13px; font-weight: 600; color: var(--amber-text); margin-bottom: 6px; }
+  .setup-banner ol { padding-left: 1.2rem; font-size: 13px; color: var(--amber-text); line-height: 1.8; }
+  .setup-banner code { background: rgba(0,0,0,0.08); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+  .setup-input { display: flex; gap: 8px; margin-top: 10px; }
+  .setup-input input { flex: 1; padding: 7px 10px; border: 1px solid var(--amber-border); border-radius: var(--radius); font-size: 13px; font-family: var(--font); background: #fff; color: var(--text); }
+  .setup-input button { padding: 7px 14px; background: var(--amber-text); color: #fff; border: none; border-radius: var(--radius); font-size: 13px; cursor: pointer; white-space: nowrap; }
+
+  /* Step bar */
+  .sbar { display: flex; margin-bottom: 1.5rem; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); }
+  .stp { flex: 1; padding: 9px 8px; font-size: 12px; color: var(--text2); background: var(--bg2); text-align: center; cursor: default; border-right: 1px solid var(--border); font-weight: 500; }
+  .stp:last-child { border-right: none; }
+  .stp.active { background: var(--blue); color: #fff; }
+  .stp.done { background: var(--green); color: #fff; }
+
+  /* Cards */
+  .sec { display: none; }
+  .sec.vis { display: block; }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+  .ct { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; }
+  .sub-ct { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .05em; margin: 12px 0 8px; }
+  .f { margin-bottom: .9rem; }
+  .f:last-child { margin-bottom: 0; }
+  .f label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 5px; }
+  .req { color: #e24b4a; margin-left: 2px; }
+  input, select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border2);
+    border-radius: var(--radius); font-size: 14px; font-family: var(--font);
+    background: var(--bg); color: var(--text); outline: none; transition: border-color .15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,95,165,.12); }
+  textarea { resize: vertical; min-height: 72px; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:540px){ .g2 { grid-template-columns: 1fr; } }
+
+  /* Priority cards */
+  .pri-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+  @media(max-width:480px){ .pri-grid { grid-template-columns: 1fr; } }
+  .pc { border: 1px solid var(--border2); border-radius: var(--radius-lg); padding: 14px 12px; cursor: pointer; transition: all .15s; text-align: center; user-select: none; }
+  .pc:hover { border-color: var(--blue); }
+  .pc .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; margin-bottom: 8px; }
+  .pc .pc-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .pc .pc-sub { font-size: 12px; color: var(--text2); }
+  .pc.sel-asap { border-color: var(--red); background: var(--red-light); }
+  .pc.sel-asap .pc-title { color: var(--red); }
+  .pc.sel-normal { border-color: var(--blue); background: var(--blue-light); }
+  .pc.sel-normal .pc-title { color: var(--blue-dark); }
+  .pc.sel-low { border-color: var(--green); background: var(--green-light); }
+  .pc.sel-low .pc-title { color: var(--green); }
+
+  /* File zones */
+  .fz { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 1rem; text-align: center; cursor: pointer; position: relative; transition: background .15s; }
+  .fz:hover { background: var(--bg2); }
+  .fz input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .fz .fz-icon { font-size: 22px; margin-bottom: 4px; }
+  .fz p { font-size: 13px; color: var(--text2); }
+  .fz small { font-size: 11px; color: var(--text3); }
+  .fl { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+  .fi { display: flex; align-items: center; gap: 8px; padding: 5px 10px; background: var(--bg2); border-radius: var(--radius); font-size: 13px; }
+  .fi span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fi button { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; line-height: 1; padding: 0; }
+  .fi button:hover { color: var(--red); }
+
+  /* Spec entry */
+  .spec-entry { border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 10px; }
+  .spec-entry-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .spec-entry-hdr span { font-size: 13px; font-weight: 600; }
+  .spec-entry-hdr button { background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; }
+  .spec-entry-hdr button:hover { color: var(--red); }
+  .add-btn { width: 100%; padding: 9px; border: 1.5px dashed var(--border2); background: none; border-radius: var(--radius); color: var(--text2); font-size: 14px; cursor: pointer; font-family: var(--font); transition: all .15s; margin-top: 4px; }
+  .add-btn:hover { background: var(--bg2); border-color: var(--blue); color: var(--blue); }
+
+  /* Nav */
+  .nr { display: flex; justify-content: space-between; margin-top: 1.5rem; }
+  .btn { padding: 9px 22px; border-radius: var(--radius); font-size: 14px; cursor: pointer; font-family: var(--font); font-weight: 500; transition: all .15s; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+  .btn-ghost:hover { background: var(--bg2); }
+  .btn-primary { background: var(--blue); border: none; color: #fff; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-success { background: var(--green); border: none; color: #fff; }
+  .btn-success:hover { background: #085041; }
+  .btn-success:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Summary */
+  .sr { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: 12px; }
+  .sr:last-child { border-bottom: none; }
+  .sr .lb { color: var(--text2); flex-shrink: 0; }
+  .sr .val { color: var(--text); text-align: right; }
+
+  /* Submitted */
+  .submitted { display: none; text-align: center; padding: 3rem 1rem; }
+  .submitted .icon { font-size: 52px; margin-bottom: 1rem; }
+  .submitted h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+  .submitted p { font-size: 14px; color: var(--text2); margin-bottom: 4px; }
+  .submitted .ref { font-size: 14px; font-weight: 600; color: var(--blue); margin: 10px 0; }
+
+  .warn { background: var(--amber-light); border: 1px solid var(--amber-border); border-radius: var(--radius); padding: 10px 14px; font-size: 13px; color: var(--amber-text); margin-bottom: 1rem; }
+  .err { color: var(--red); font-size: 12px; margin-top: 3px; display: none; }
+  .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="logo-bar">
+    <div class="logo">NB</div>
+    <div>
+      <h1>New Supplier Onboarding Request</h1>
+      <p>Complete all sections and submit for procurement approval</p>
+    </div>
+  </div>
+
+  <!-- Setup Banner -->
+  <div class="setup-banner" id="setup-banner">
+    <h3>⚙️ One-time setup required — connect to Google Sheets</h3>
+    <ol>
+      <li>Go to <strong>sheets.google.com</strong> and create a new spreadsheet</li>
+      <li>Click <strong>Extensions → Apps Script</strong></li>
+      <li>Delete any existing code, then paste the script from <code>apps-script.gs</code> (included in your download)</li>
+      <li>Click <strong>Deploy → New deployment → Web app</strong> — set "Who has access" to <strong>Anyone</strong></li>
+      <li>Copy the Web App URL and paste it below, then click Save</li>
+    </ol>
+    <div class="setup-input">
+      <input type="text" id="script-url" placeholder="Paste your Google Apps Script Web App URL here..." />
+      <button onclick="saveScriptUrl()">Save &amp; connect</button>
+    </div>
+    <p id="url-status" style="font-size:12px;margin-top:6px"></p>
+  </div>
+
+  <!-- Step bar -->
+  <div class="sbar" id="sbar">
+    <div class="stp active" id="st0">1. Supplier info</div>
+    <div class="stp" id="st1">2. Documents</div>
+    <div class="stp" id="st2">3. Review &amp; submit</div>
+  </div>
+
+  <!-- STEP 0: Supplier Info -->
+  <div class="sec vis" id="sec0">
+
+    <div class="card">
+      <div class="ct">Requestor information</div>
+      <div class="g2">
+        <div class="f"><label>Requestor name <span class="req">*</span></label><input type="text" id="req-name" placeholder="Full name" /></div>
+        <div class="f"><label>Position / title</label><input type="text" id="req-pos" placeholder="e.g. Purchasing Officer" /></div>
+      </div>
+      <div class="g2">
+        <div class="f"><label>Department <span class="req">*</span></label><input type="text" id="req-dept" placeholder="e.g. Procurement" /></div>
+        <div class="f"><label>Date of request</label><input type="date" id="req-date" /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Corporate information</div>
+      <div class="f"><label>Company name <span class="req">*</span></label><input type="text" id="corp-name" placeholder="Legal company name" /></div>
+      <div class="g2">
+        <div class="f"><label>Company telephone <span class="req">*</span></label><input type="tel" id="corp-tel" placeholder="(02) 8XXX-XXXX" /></div>
+        <div class="f"><label>Company address <span class="req">*</span></label><input type="text" id="corp-addr" placeholder="Street, City, Province" /></div>
+      </div>
+      <div class="sub-ct">Primary contact</div>
+      <div class="g2">
+        <div class="f"><label>Contact name <span class="req">*</span></label><input type="text" id="corp-cn" placeholder="Full name" /></div>
+        <div class="f"><label>Email <span class="req">*</span></label><input type="email" id="corp-email" placeholder="contact@company.com" /></div>
+      </div>
+      <div class="f"><label>Mobile / phone</label><input type="tel" id="corp-phone" placeholder="+63 9XX XXX XXXX" /></div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Facility information</div>
+      <div class="g2">
+        <div class="f"><label>Facility address <span class="req">*</span></label><input type="text" id="fac-addr" placeholder="Street, City, Province" /></div>
+        <div class="f"><label>Facility telephone</label><input type="tel" id="fac-tel" placeholder="(02) 8XXX-XXXX" /></div>
+      </div>
+      <div class="sub-ct">Facility primary contact</div>
+      <div class="g2">
+        <div class="f"><label>Contact name</label><input type="text" id="fac-cn" placeholder="Full name" /></div>
+        <div class="f"><label>Email</label><input type="email" id="fac-email" placeholder="facility@company.com" /></div>
+      </div>
+      <div class="f"><label>Mobile / phone</label><input type="tel" id="fac-phone" placeholder="+63 9XX XXX XXXX" /></div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Classification</div>
+      <div class="f"><label>Supplier category <span class="req">*</span></label>
+        <select id="sup-cat">
+          <option value="">Select category...</option>
+          <option>Poultry</option>
+          <option>Core item</option>
+          <option>Non-core item</option>
+          <option>LTO food</option>
+          <option>Packaging</option>
+          <option>Equipment &amp; machinery</option>
+          <option>Smallwares</option>
+        </select>
+      </div>
+      <div class="f"><label>Scope of supply / services offered <span class="req">*</span></label>
+        <textarea id="sup-scope" placeholder="Briefly describe what this supplier provides..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ct">Approval priority</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Standard approval timeline is 3 months.</p>
+      <div class="pri-grid">
+        <div class="pc" id="pc-asap" onclick="setPri('asap')">
+          <div class="badge" style="background:#FCEBEB;color:#791F1F">Expedited</div>
+          <div class="pc-title">ASAP</div>
+          <div class="pc-sub">Urgent — requires justification</div>
+        </div>
+        <div class="pc" id="pc-normal" onclick="setPri('normal')">
+          <div class="badge" style="background:#E6F1FB;color:#0C447C">Standard</div>
+          <div class="pc-title">Normal</div>
+          <div class="pc-sub">Within 3 months</div>
+        </div>
+        <div class="pc" id="pc-low" onclick="setPri('low')">
+          <div class="badge" style="background:#EAF3DE;color:#27500A">Flexible</div>
+          <div class="pc-title">Non-priority</div>
+          <div class="pc-sub">No fixed deadline</div>
+        </div>
+      </div>
+      <div id="pri-just-wrap" style="margin-top:12px;display:none">
+        <div class="f"><label>Justification for ASAP priority <span class="req">*</span></label>
+          <textarea id="pri-just" placeholder="Explain why expedited approval is needed..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="nr">
+      <div></div>
+      <button class="btn btn-primary" onclick="goStep(1)">Next — documents ›</button>
+    </div>
+  </div>
+
+  <!-- STEP 1: Documents -->
+  <div class="sec" id="sec1">
+    <div class="card">
+      <div class="ct">Product specifications &amp; pricing</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:1rem">Add each product with specs and pricing. Upload spec sheets per item.</p>
+      <div id="spec-items">
+        <!-- First entry injected by JS -->
+      </div>
+      <button class="add-btn" onclick="addEntry()">+ Add another product / item</button>
+    </div>
+    <div class="card">
+      <div class="ct">Other supporting documents</div>
+      <div class="f">
+        <div class="fz">
+          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx" multiple onchange="addOther(this)" />
+          <div class="fz-icon">📎</div>
+          <p>Quotations, certifications, company profile, etc.</p>
+          <small>PDF, Word, Excel, JPG, PNG</small>
+        </div>
+        <div class="fl" id="fl-other"></div>
+      </div>
+      <p style="font-size:12px;color:var(--text3);margin-top:8px">Note: files are listed for reference. Actual file submission requires email or shared drive — include a note in the form if needed.</p>
+    </div>
+    <div class="nr">
+      <button class="btn btn-ghost" onclick="goStep(0)">‹ Back</button>
+      <button class="btn btn-primary" onclick="goStep(2)">Next — review ›</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Review -->
+  <div class="sec" id="sec2">
+    <div class="card">
+      <div class="ct">Requestor &amp; company details</div>
+      <div id="sum-info"></div>
+    </div>
+    <div class="card">
+      <div class="ct">Products &amp; documents</div>
+      <div id="sum-docs"></div>
+    </div>
+    <div class="warn">⚠️ By submitting, you confirm all information is accurate. This request will be routed to Procurement for approval.</div>
+    <div class="nr">
+      <button class="btn btn-ghost" onclick="goStep(1)">‹ Back</button>
+      <button class="btn btn-success" id="submit-btn" onclick="submitForm()">Submit for approval</button>
+    </div>
+  </div>
+
+  <!-- Submitted -->
+  <div class="submitted" id="submitted">
+    <div class="icon">✅</div>
+    <h2>Request submitted!</h2>
+    <div class="ref" id="ref-no"></div>
+    <p>Your supplier onboarding request has been logged in Google Sheets.</p>
+    <p style="margin-top:4px">The Procurement team will review within the selected priority timeframe.</p>
+    <button class="btn btn-ghost" style="margin-top:1.5rem" onclick="location.reload()">Submit another request</button>
+  </div>
+
+</div>
+
+<script>
+var cur = 0;
+var selPri = '';
+var specFiles = {};
+var otherFiles = [];
+var entryCount = 0;
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZB0zuTEhVNhTSjJfs4fXK7xnXlCIt8SXCqswk3L6suDIV8ZMk6p0Dx1JUxLhEi3Q1/exec';
+
+window.onload = function() {
+  document.getElementById('req-date').valueAsDate = new Date();
+  document.getElementById('setup-banner').style.display = 'none';
+  addEntry();
+};
+
+function saveScriptUrl() {
+  var url = document.getElementById('script-url').value.trim();
+  if (!url.startsWith('https://')) {
+    document.getElementById('url-status').textContent = '❌ Please enter a valid URL starting with https://';
+    return;
+  }
+  localStorage.setItem('supplier_script_url', url);
+  SCRIPT_URL = url;
+  document.getElementById('url-status').textContent = '✅ Connected! You can now submit forms.';
+  setTimeout(function(){ document.getElementById('setup-banner').style.display = 'none'; }, 1500);
+}
+
+function goStep(n) {
+  document.getElementById('sec'+cur).classList.remove('vis');
+  document.getElementById('st'+cur).classList.remove('active');
+  if (n > cur) document.getElementById('st'+cur).classList.add('done');
+  else document.getElementById('st'+cur).classList.remove('done');
+  cur = n;
+  document.getElementById('sec'+n).classList.add('vis');
+  document.getElementById('st'+n).classList.add('active');
+  if (n === 2) buildSummary();
+  window.scrollTo(0,0);
+}
+
+function setPri(p) {
+  selPri = p;
+  ['asap','normal','low'].forEach(function(k){
+    document.getElementById('pc-'+k).className = 'pc';
+  });
+  document.getElementById('pc-'+p).classList.add('sel-'+p);
+  document.getElementById('pri-just-wrap').style.display = p === 'asap' ? 'block' : 'none';
+}
+
+function addEntry() {
+  var idx = entryCount++;
+  var d = document.createElement('div');
+  d.className = 'spec-entry'; d.id = 'se-'+idx;
+  d.innerHTML =
+    '<div class="spec-entry-hdr"><span>Product / item '+(idx+1)+'</span>'
+    +'<button onclick="removeEntry('+idx+')" title="Remove">✕</button></div>'
+    +'<div class="g2" style="margin-bottom:10px">'
+    +'<div class="f" style="margin-bottom:0"><label>Item name</label><input type="text" class="pname" placeholder="e.g. Frozen whole chicken" /></div>'
+    +'<div class="f" style="margin-bottom:0"><label>Unit of measure</label><input type="text" class="puom" placeholder="e.g. kg, pack, box" /></div>'
+    +'</div>'
+    +'<div class="g2" style="margin-bottom:10px">'
+    +'<div class="f" style="margin-bottom:0"><label>Unit price (PHP)</label><input type="number" class="pprice" placeholder="0.00" step="0.01" /></div>'
+    +'<div class="f" style="margin-bottom:0"><label>MOQ</label><input type="text" class="pmoq" placeholder="Minimum order qty" /></div>'
+    +'</div>'
+    +'<div class="f" style="margin-bottom:10px"><label>Specs / description</label><textarea class="pdesc" style="min-height:56px" placeholder="Key specs, dimensions, weight, certifications..."></textarea></div>'
+    +'<div class="f" style="margin-bottom:0"><label>Spec sheet file</label>'
+    +'<div class="fz"><input type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx" onchange="addSpecFile('+idx+',this)" />'
+    +'<div class="fz-icon">📄</div><p>Upload spec sheet</p><small>PDF, Word, Excel, JPG, PNG</small></div>'
+    +'<div class="fl" id="fl-'+idx+'"></div></div>';
+  document.getElementById('spec-items').appendChild(d);
+}
+
+function removeEntry(idx) {
+  var el = document.getElementById('se-'+idx);
+  if (el) el.remove();
+  delete specFiles[idx];
+}
+
+function addSpecFile(idx, inp) {
+  if (!specFiles[idx]) specFiles[idx] = [];
+  Array.from(inp.files).forEach(function(f){
+    if (!specFiles[idx].find(function(x){return x.name===f.name;})) specFiles[idx].push(f);
+  });
+  renderFL(idx); inp.value='';
+}
+
+function renderFL(idx) {
+  var list = document.getElementById('fl-'+idx); if (!list) return;
+  list.innerHTML = '';
+  (specFiles[idx]||[]).forEach(function(f){
+    var item = document.createElement('div'); item.className='fi';
+    item.innerHTML = '<span>📄 '+f.name+'</span><button onclick="rmSpec('+idx+',\''+f.name+'\')">✕</button>';
+    list.appendChild(item);
+  });
+}
+function rmSpec(idx, name) { specFiles[idx]=specFiles[idx].filter(function(f){return f.name!==name;}); renderFL(idx); }
+
+function addOther(inp) {
+  Array.from(inp.files).forEach(function(f){
+    if (!otherFiles.find(function(x){return x.name===f.name;})) otherFiles.push(f);
+  });
+  var list = document.getElementById('fl-other'); list.innerHTML='';
+  otherFiles.forEach(function(f){
+    var item=document.createElement('div'); item.className='fi';
+    item.innerHTML='<span>📎 '+f.name+'</span><button onclick="rmOther(\''+f.name+'\')">✕</button>';
+    list.appendChild(item);
+  });
+  inp.value='';
+}
+function rmOther(name){ otherFiles=otherFiles.filter(function(f){return f.name!==name;}); var l=document.getElementById('fl-other'); l.innerHTML=''; otherFiles.forEach(function(f){var i=document.createElement('div');i.className='fi';i.innerHTML='<span>📎 '+f.name+'</span><button onclick="rmOther(\''+f.name+'\')">✕</button>';l.appendChild(i);}); }
+
+function v(id){ return (document.getElementById(id)||{}).value||''; }
+
+function buildSummary() {
+  var priLabel = {'asap':'ASAP (expedited)','normal':'Normal — within 3 months','low':'Non-priority'}[selPri]||'Not selected';
+  var rows = [
+    ['Requestor', v('req-name')+(v('req-pos')?' — '+v('req-pos'):'')],
+    ['Department', v('req-dept')],
+    ['Date', v('req-date')],
+    ['Company name', v('corp-name')],
+    ['Company tel.', v('corp-tel')],
+    ['Company address', v('corp-addr')],
+    ['Corporate contact', v('corp-cn')+(v('corp-email')?' · '+v('corp-email'):'')],
+    ['Facility address', v('fac-addr')],
+    ['Facility contact', v('fac-cn')+(v('fac-email')?' · '+v('fac-email'):'')],
+    ['Category', v('sup-cat')],
+    ['Priority', priLabel],
+  ];
+  document.getElementById('sum-info').innerHTML = rows.map(function(r){
+    return '<div class="sr"><span class="lb">'+r[0]+'</span><span class="val">'+(r[1]||'<em style="color:var(--text3)">—</em>')+'</span></div>';
+  }).join('');
+
+  var entries = document.querySelectorAll('.spec-entry');
+  var html = '';
+  entries.forEach(function(e, i){
+    var nm = e.querySelector('.pname').value || 'Item '+(i+1);
+    var price = e.querySelector('.pprice').value;
+    var uom = e.querySelector('.puom').value;
+    var moq = e.querySelector('.pmoq').value;
+    var idx = e.id.replace('se-','');
+    var fc = (specFiles[idx]||[]).length;
+    html += '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
+      +'<div style="font-size:13px;font-weight:600;margin-bottom:2px">'+nm+'</div>'
+      +'<div style="font-size:12px;color:var(--text2)">'
+      +(price ? '₱'+Number(price).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})+' / '+(uom||'unit') : 'No price')
+      +(moq ? ' · MOQ: '+moq : '')
+      +' · '+fc+' file'+(fc!==1?'s':'')+' attached</div></div>';
+  });
+  if (otherFiles.length) html += '<div style="padding:8px 0;font-size:12px;color:var(--text2)">📎 '+otherFiles.length+' other supporting file'+(otherFiles.length!==1?'s':'')+' attached</div>';
+  document.getElementById('sum-docs').innerHTML = html || '<p style="font-size:13px;color:var(--text3)">No products added.</p>';
+}
+
+function collectData() {
+  var products = [];
+  document.querySelectorAll('.spec-entry').forEach(function(e, i){
+    var idx = e.id.replace('se-','');
+    products.push({
+      name: e.querySelector('.pname').value,
+      uom: e.querySelector('.puom').value,
+      price: e.querySelector('.pprice').value,
+      moq: e.querySelector('.pmoq').value,
+      desc: e.querySelector('.pdesc').value,
+      files: (specFiles[idx]||[]).map(function(f){return f.name;}).join(', ')
+    });
+  });
+  return {
+    ref: 'SUP-'+new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9000)+1000),
+    timestamp: new Date().toISOString(),
+    requestor: v('req-name'), position: v('req-pos'), department: v('req-dept'), reqDate: v('req-date'),
+    companyName: v('corp-name'), companyTel: v('corp-tel'), companyAddr: v('corp-addr'),
+    corpContact: v('corp-cn'), corpEmail: v('corp-email'), corpPhone: v('corp-phone'),
+    facAddr: v('fac-addr'), facTel: v('fac-tel'),
+    facContact: v('fac-cn'), facEmail: v('fac-email'), facPhone: v('fac-phone'),
+    category: v('sup-cat'), scope: v('sup-scope'),
+    priority: {'asap':'ASAP','normal':'Normal','low':'Non-priority'}[selPri]||'',
+    priorityJustification: selPri==='asap' ? v('pri-just') : '',
+    products: JSON.stringify(products),
+    otherFiles: otherFiles.map(function(f){return f.name;}).join(', '),
+    status: 'Pending'
+  };
+}
+
+function submitForm() {
+  var btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Submitting...';
+
+  var data = collectData();
+
+  if (!SCRIPT_URL) {
+    alert('Please set up your Google Apps Script URL first (see the setup banner at the top).');
+    btn.disabled = false; btn.innerHTML = 'Submit for approval'; return;
+  }
+
+  fetch(SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(function() {
+    document.getElementById('sbar').style.display='none';
+    document.querySelectorAll('.sec').forEach(function(s){s.style.display='none';});
+    document.querySelector('.logo-bar').style.marginBottom='0';
+    document.getElementById('submitted').style.display='block';
+    document.getElementById('ref-no').textContent = 'Reference no.: '+data.ref;
+  }).catch(function(err) {
+    btn.disabled=false; btn.innerHTML='Submit for approval';
+    alert('Submission failed. Check your internet connection and Apps Script URL.');
+  });
+}
+</script>
+</body>
+</html>

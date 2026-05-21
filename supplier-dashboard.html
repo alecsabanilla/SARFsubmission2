@@ -136,18 +136,6 @@ tr:last-child td{border-bottom:none}
 .row-clickable:hover td{background:var(--bg2)}
 .hint{font-size:11px;color:var(--text3);margin-bottom:8px;font-style:italic}
 
-/* Password gate */
-.pw-gate{position:fixed;inset:0;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:999}
-.pw-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.3)}
-.pw-box .pw-logo{width:48px;height:48px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;margin:0 auto 1rem}
-.pw-box h2{font-size:16px;font-weight:700;margin-bottom:4px}
-.pw-box p{font-size:13px;color:var(--text3);margin-bottom:1.25rem}
-.pw-input{width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:var(--font);outline:none;text-align:center;letter-spacing:2px;margin-bottom:8px}
-.pw-input:focus{border-color:var(--blue)}
-.pw-btn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)}
-.pw-btn:hover{background:var(--blue-dark)}
-.pw-err{font-size:12px;color:var(--red);margin-top:6px;min-height:16px}
-
 /* Weekly report modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
 .modal-overlay.open{display:flex}
@@ -258,7 +246,6 @@ var ALL_STEPS = CORP_STEPS.concat(FAC_STEPS).concat(PROD_STEPS);
 // Cycle: X -> O -> 1 -> - -> X
 var STEP_CYCLE = ['X','O','1','-'];
 
-// loadData called after auth check
 
 function loadData() {
   document.getElementById('table-container').innerHTML = '<div style="text-align:center;padding:2rem"><div class="spinner"></div><p style="font-size:13px;color:var(--text3);margin-top:8px">Loading submissions...</p></div>';
@@ -798,18 +785,6 @@ function copyReport() {
   });
 }
 </script>
-
-<!-- Password Gate -->
-<div class="pw-gate" id="pw-gate">
-  <div class="pw-box">
-    <div class="pw-logo">PLK</div>
-    <h2>SPEQ Approval Dashboard</h2>
-    <p>This dashboard is restricted.<br>Enter your password to continue.</p>
-    <input type="password" class="pw-input" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()" autofocus />
-    <button class="pw-btn" onclick="checkPw()">Unlock</button>
-    <div class="pw-err" id="pw-err"></div>
-  </div>
-</div>
 
 <!-- Weekly Report Modal -->
 <div class="modal-overlay" id="report-modal">

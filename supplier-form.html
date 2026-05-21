@@ -272,7 +272,7 @@
       <div class="ct">Product specs &amp; file upload</div>
       <div class="f">
         <p style="font-size:13px;color:var(--text2);margin-bottom:10px">Upload your product spec sheets and supporting documents to the shared SharePoint folder, then paste the link to your specific file or folder below.</p>
-        <a href="https://popeyesphps-my.sharepoint.com/:f:/g/personal/maabanilla_popeyes_ph/IgAowIf8qiGiRZGs0P1YnbknATxhYk86rRZYhaBFyBaZDmI?e=MfkLLk" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:#0078D4;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:14px;">&#128194; Open SARF Product Specs folder</a>
+        <a href="https://popeyesphp-my.sharepoint.com/:f:/g/personal/maabanilla_popeyes_ph/IgAowIf8qiGiRZGs0P1YnbknATxhYk86rRZYhaBFyBaZDmI?e=MfkLLk" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:#0078D4;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:14px;">&#128194; Open SARF Product Specs folder</a>
         <label>Paste your file or folder link here <span class="req">*</span></label>
         <input type="url" id="file-link" placeholder="Paste your SharePoint file or folder link here..." />
         <p style="font-size:11px;color:var(--text3);margin-top:5px">After uploading to SharePoint, copy the link to your file/folder and paste it above so the approver can access your documents directly.</p>
@@ -316,7 +316,6 @@
 <script>
 var cur = 0;
 var selPri = '';
-var specFiles = {};
 var otherFiles = [];
 var entryCount = 0;
 var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzzkWR2bUcBJpAsCnQzWwiSv4eopEOcSkveh06cEWuiwRaZcjpC6igx-C--f4SaUYqP/exec';
@@ -376,10 +375,7 @@ function addEntry() {
     +'<div class="f" style="margin-bottom:0"><label>MOQ</label><input type="text" class="pmoq" placeholder="Minimum order qty" /></div>'
     +'</div>'
     +'<div class="f" style="margin-bottom:10px"><label>Specs / description</label><textarea class="pdesc" style="min-height:56px" placeholder="Key specs, dimensions, weight, certifications..."></textarea></div>'
-    +'<div class="f" style="margin-bottom:0"><label>Spec sheet file</label>'
-    +'<div class="fz"><input type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx" onchange="addSpecFile('+idx+',this)" />'
-    +'<div class="fz-icon">📄</div><p>Upload spec sheet</p><small>PDF, Word, Excel, JPG, PNG</small></div>'
-    +'<div class="fl" id="fl-'+idx+'"></div></div>';
+    +'';
   document.getElementById('spec-items').appendChild(d);
 }
 

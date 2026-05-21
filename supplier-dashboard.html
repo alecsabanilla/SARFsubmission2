@@ -652,10 +652,10 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // Password gate
-var PW = 'RBIApprovals2026*';
 function checkPw() {
-  var val = document.getElementById('pw-input').value;
-  if (val === PW) {
+  var val = document.getElementById('pw-input').value.trim();
+  var correct = atob('UkJJQXBwcm92YWxzMjAyNio=');
+  if (val === correct) {
     sessionStorage.setItem('sarf_auth', '1');
     document.getElementById('pw-gate').style.display = 'none';
     loadData();

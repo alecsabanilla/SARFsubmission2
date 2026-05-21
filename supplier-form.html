@@ -269,6 +269,14 @@
       <button class="add-btn" onclick="addEntry()">+ Add another product / item</button>
     </div>
     <div class="card">
+      <div class="ct">Shared file / document link</div>
+      <div class="f">
+        <label>Paste a link to your shared folder or file</label>
+        <input type="url" id="file-link" placeholder="e.g. https://drive.google.com/... or SharePoint / OneDrive link" />
+        <p style="font-size:11px;color:var(--text3);margin-top:5px">Link the folder where spec sheets, quotations, and attachments are stored. Any URL works - Google Drive, SharePoint, OneDrive, Dropbox, etc.</p>
+      </div>
+    </div>
+    <div class="card">
       <div class="ct">Other supporting documents</div>
       <div class="f">
         <div class="fz">
@@ -491,6 +499,7 @@ function collectData() {
     priority: {'asap':'ASAP','normal':'Normal','low':'Non-priority'}[selPri]||'',
     priorityJustification: selPri==='asap' ? v('pri-just') : '',
     products: JSON.stringify(products),
+    fileLink: (document.getElementById('file-link')||{}).value||'',
     otherFiles: otherFiles.map(function(f){return f.name;}).join(', '),
     status: 'Pending'
   };

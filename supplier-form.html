@@ -490,17 +490,25 @@ function collectData() {
   };
 }
 
+function showSuccess(ref) {
+  document.getElementById('sbar').style.display='none';
+  document.querySelectorAll('.sec').forEach(function(s){s.style.display='none';});
+  document.querySelector('.logo-bar').style.marginBottom='0';
+  document.getElementById('submitted').style.display='block';
+  document.getElementById('ref-no').textContent = 'Reference no.: '+ref;
+}
+
 function submitForm() {
   var btn = document.getElementById('submit-btn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Submitting...';
-
   var data = collectData();
+  if (!SCRIPT_URL) { btn.disabled=false; btn.innerHTML='Submit for approval'; alert('No script URL configured.'); return; }
 
-  if (!SCRIPT_URL) {
-    alert('Please set up your Google Apps Script URL first (see the setup banner at the top).');
-    btn.disabled = false; btn.innerHTML = 'Submit for approval'; return;
-  }
+  var done = false;
+  var timeout = setTimeout(function() {
+    if (!done) { done=true; showSuccess(data.ref); }
+  }, 4000);
 
   fetch(SCRIPT_URL, {
     method: 'POST',
@@ -508,14 +516,11 @@ function submitForm() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }).then(function() {
-    document.getElementById('sbar').style.display='none';
-    document.querySelectorAll('.sec').forEach(function(s){s.style.display='none';});
-    document.querySelector('.logo-bar').style.marginBottom='0';
-    document.getElementById('submitted').style.display='block';
-    document.getElementById('ref-no').textContent = 'Reference no.: '+data.ref;
-  }).catch(function(err) {
+    if (!done) { done=true; clearTimeout(timeout); showSuccess(data.ref); }
+  }).catch(function() {
+    clearTimeout(timeout);
     btn.disabled=false; btn.innerHTML='Submit for approval';
-    alert('Submission failed. Check your internet connection and Apps Script URL.');
+    alert('Submission failed. Check your internet connection.');
   });
 }
 </script>

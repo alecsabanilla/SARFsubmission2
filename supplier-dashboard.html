@@ -249,19 +249,29 @@ var STEP_CYCLE = ['X','O','1','-'];
 
 function loadData() {
   document.getElementById('table-container').innerHTML = '<div style="text-align:center;padding:2rem"><div class="spinner"></div><p style="font-size:13px;color:var(--text3);margin-top:8px">Loading submissions...</p></div>';
-  fetch(SCRIPT_URL + '?action=get')
-    .then(function(r){ return r.json(); })
-    .then(function(data) {
-      allRows = (data.rows||[]).map(function(r){
-        r.stepData = parseSteps(r);
-        r.completion = calcCompletion(r.stepData);
-        return r;
-      });
-      updateCounts(); updateMetrics(); renderTable();
-    })
-    .catch(function(){
-      document.getElementById('table-container').innerHTML = '<div class="empty"><div class="big">&#9888;&#65039;</div><p>Could not load data. Check your connection and try refreshing.</p></div>';
+  // Use JSONP to avoid CORS issues
+  var callbackName = 'sarfCallback_' + Date.now();
+  var script = document.createElement('script');
+  var timeout = setTimeout(function() {
+    document.getElementById('table-container').innerHTML = '<div class="empty"><div class="big">&#9888;</div><p>Could not load data. Check your connection and try refreshing.</p></div>';
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }, 10000);
+
+  window[callbackName] = function(data) {
+    clearTimeout(timeout);
+    delete window[callbackName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    allRows = (data.rows||[]).map(function(r){
+      r.stepData = parseSteps(r);
+      r.completion = calcCompletion(r.stepData);
+      return r;
     });
+    updateCounts(); updateMetrics(); renderTable();
+  };
+
+  script.src = SCRIPT_URL + '?action=get&callback=' + callbackName;
+  document.head.appendChild(script);
 }
 
 function parseSteps(r) {

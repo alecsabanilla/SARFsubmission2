@@ -440,23 +440,27 @@ function buildSummary() {
     return '<div class="sr"><span class="lb">'+r[0]+'</span><span class="val">'+(r[1]||'<em style="color:var(--text3)">—</em>')+'</span></div>';
   }).join('');
 
-  var entries = document.querySelectorAll('.spec-entry');
-  var html = '';
-  entries.forEach(function(e, i){
-    var nm = e.querySelector('.pname').value || 'Item '+(i+1);
-    var price = e.querySelector('.pprice').value;
-    var uom = e.querySelector('.puom').value;
-    var moq = e.querySelector('.pmoq').value;
-    var idx = e.id.replace('se-','');
-    html += '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
-      +'<div style="font-size:13px;font-weight:600;margin-bottom:2px">'+nm+'</div>'
-      +'<div style="font-size:12px;color:var(--text2)">'
-      +(price ? '₱'+Number(price).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})+' / '+(uom||'unit') : 'No price')
-      +(moq ? ' · MOQ: '+moq : '')
-      +'</div></div>';
-  });
-  if (otherFiles.length) html += '<div style="padding:8px 0;font-size:12px;color:var(--text2)">📎 '+otherFiles.length+' other supporting file'+(otherFiles.length!==1?'s':'')+' attached</div>';
-  document.getElementById('sum-docs').innerHTML = html || '<p style="font-size:13px;color:var(--text3)">No products added.</p>';
+  try {
+    var entries = document.querySelectorAll('.spec-entry');
+    var html = '';
+    entries.forEach(function(e, i){
+      var nm = e.querySelector('.pname').value || 'Item '+(i+1);
+      var price = e.querySelector('.pprice').value;
+      var uom = e.querySelector('.puom').value;
+      var moq = e.querySelector('.pmoq').value;
+      html += '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
+        +'<div style="font-size:13px;font-weight:600;margin-bottom:2px">'+nm+'</div>'
+        +'<div style="font-size:12px;color:var(--text2)">'
+        +(price ? String.fromCharCode(8369)+Number(price).toLocaleString()+' / '+(uom||'unit') : 'No price')
+        +(moq ? ' - MOQ: '+moq : '')
+        +'</div></div>';
+    });
+    var fl = document.getElementById('file-link') ? document.getElementById('file-link').value : '';
+    if (fl) html += '<div style="padding:8px 0;font-size:13px"><a href="'+fl+'" target="_blank" style="color:#185FA5;">View shared files</a></div>';
+    document.getElementById('sum-docs').innerHTML = html || '<p style="font-size:13px;color:var(--text3)">No products added.</p>';
+  } catch(err) {
+    document.getElementById('sum-docs').innerHTML = '<p style="font-size:13px;color:var(--text3)">Error loading summary: '+err.message+'</p>';
+  }
 }
 
 function collectData() {

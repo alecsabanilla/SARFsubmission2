@@ -683,109 +683,75 @@ function generateReport() {
   var approved = allRows.filter(function(r){var s=(r.status||'').toLowerCase();return s==='approved'||s==='conditionally approved';}).length;
   var hold = allRows.filter(function(r){return (r.status||'').toLowerCase()==='on hold';}).length;
   var asap = allRows.filter(function(r){return (r.priority||'').toLowerCase()==='asap';}).length;
+  var SEP = '=======================================================';
+  var DIV = '-------------------------------------------------------';
+  var lines = [];
+  lines.push('PLK-RBI SUPPLIER APPROVAL REQUEST (SARF)');
+  lines.push('Weekly Status Report - ' + dateStr);
+  lines.push(SEP);
+  lines.push('');
+  lines.push('SUMMARY');
+  lines.push(DIV);
+  lines.push('Total requests:    ' + total);
+  lines.push('Pending:           ' + pending);
+  lines.push('In review:         ' + review);
+  lines.push('Approved:          ' + approved);
+  lines.push('On hold:           ' + hold);
+  lines.push('ASAP priority:     ' + asap);
+  lines.push('');
 
-  var report = '';
-  report += 'PLK-RBI SUPPLIER APPROVAL REQUEST (SARF)
-';
-  report += 'Weekly Status Report — ' + dateStr + '
-';
-  report += '='.repeat(55) + '
-
-';
-
-  report += 'SUMMARY
-';
-  report += '-'.repeat(30) + '
-';
-  report += 'Total requests:    ' + total + '
-';
-  report += 'Pending:           ' + pending + '
-';
-  report += 'In review:         ' + review + '
-';
-  report += 'Approved:          ' + approved + '
-';
-  report += 'On hold:           ' + hold + '
-';
-  report += 'ASAP priority:     ' + asap + '
-
-';
-
-  // ASAP requests
-  var asapRows = allRows.filter(function(r){return (r.priority||'').toLowerCase()==='asap' && (r.status||'').toLowerCase()!=='approved';});
+  var asapRows = allRows.filter(function(r){return (r.priority||'').toLowerCase()==='asap'&&(r.status||'').toLowerCase()!=='approved';});
   if (asapRows.length) {
-    report += 'URGENT / ASAP REQUESTS
-';
-    report += '-'.repeat(30) + '
-';
+    lines.push('URGENT / ASAP REQUESTS');
+    lines.push(DIV);
     asapRows.forEach(function(r){
-      report += r.ref + ' | ' + (r.companyName||'—') + ' | ' + (r.category||'—') + ' | ' + Math.round((r.completion||0)*100) + '% complete
-';
-      if (r.remarks) report += '  Remarks: ' + r.remarks + '
-';
+      lines.push(r.ref+' | '+(r.companyName||'-')+' | '+(r.category||'-')+' | '+Math.round((r.completion||0)*100)+'% complete');
+      if (r.remarks) lines.push('  Remarks: '+r.remarks);
     });
-    report += '
-';
+    lines.push('');
   }
 
-  // In review requests
   var reviewRows = allRows.filter(function(r){return (r.status||'').toLowerCase()==='in review';});
   if (reviewRows.length) {
-    report += 'IN REVIEW
-';
-    report += '-'.repeat(30) + '
-';
+    lines.push('IN REVIEW');
+    lines.push(DIV);
     reviewRows.forEach(function(r){
-      report += r.ref + ' | ' + (r.companyName||'—') + ' | ' + (r.category||'—') + ' | ' + Math.round((r.completion||0)*100) + '% complete
-';
-      var steps = [];
+      lines.push(r.ref+' | '+(r.companyName||'-')+' | '+(r.category||'-')+' | '+Math.round((r.completion||0)*100)+'% complete');
       var STEPS = ['CIW','MNDA','MPDA','MTC','CQ','FA','QAP','FIQ','Recipe Validation','RM Supplier'];
-      STEPS.forEach(function(s){
+      var stepStr = STEPS.map(function(s){
         var v=(r.stepData[s]||'X').toString().toUpperCase();
-        if(v==='O') steps.push(s+':Ongoing');
-        else if(v==='1') steps.push(s+':Done');
-        else if(v!=='-') steps.push(s+':Pending');
-      });
-      report += '  Steps: ' + steps.join(' | ') + '
-';
-      if (r.remarks) report += '  Remarks: ' + r.remarks + '
-';
+        return s+':'+(v==='1'?'Done':v==='O'?'Ongoing':'Pending');
+      }).join(' | ');
+      lines.push('  Steps: '+stepStr);
+      if (r.remarks) lines.push('  Remarks: '+r.remarks);
     });
-    report += '
-';
+    lines.push('');
   }
 
-  // All active requests table
-  report += 'ALL ACTIVE REQUESTS
-';
-  report += '-'.repeat(30) + '
-';
-  report += ('Ref').padEnd(16) + ('Company').padEnd(28) + ('Category').padEnd(16) + ('Priority').padEnd(12) + ('Status').padEnd(22) + '%
-';
-  report += '-'.repeat(95) + '
-';
+  lines.push('ALL ACTIVE REQUESTS');
+  lines.push(DIV);
   var active = allRows.filter(function(r){var s=(r.status||'').toLowerCase();return s!=='approved'&&s!=='rejected';});
-  active.forEach(function(r){
-    var ref = (r.ref||'').padEnd(16);
-    var co = (r.companyName||'—').substring(0,26).padEnd(28);
-    var cat = (r.category||'—').substring(0,14).padEnd(16);
-    var pri = (r.priority||'—').padEnd(12);
-    var st = (r.status||'Pending').padEnd(22);
-    var pct = Math.round((r.completion||0)*100)+'%';
-    report += ref + co + cat + pri + st + pct + '
-';
-  });
+  if (active.length) {
+    active.forEach(function(r){
+      var co = (r.companyName||'-').substring(0,25);
+      var cat = (r.category||'-').substring(0,14);
+      lines.push(
+        (r.ref||'').substring(0,15).padEnd ? 
+        (r.ref||'') + ' | ' + co + ' | ' + cat + ' | ' + (r.priority||'-') + ' | ' + (r.status||'Pending') + ' | ' + Math.round((r.completion||0)*100) + '%' :
+        (r.ref||'') + ' | ' + co + ' | ' + (r.status||'Pending')
+      );
+    });
+  } else {
+    lines.push('No active requests.');
+  }
 
-  report += '
-' + '='.repeat(55) + '
-';
-  report += 'Generated by SARF Dashboard | PLK-RBI Procurement
-';
+  lines.push('');
+  lines.push(SEP);
+  lines.push('Generated by SARF Dashboard | PLK-RBI Procurement');
 
-  document.getElementById('report-content').textContent = report;
+  document.getElementById('report-content').textContent = lines.join('\n');
   document.getElementById('report-modal').classList.add('open');
 }
-
 function copyReport() {
   var text = document.getElementById('report-content').textContent;
   navigator.clipboard.writeText(text).then(function(){

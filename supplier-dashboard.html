@@ -649,29 +649,7 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // Password gate
-function checkPw() {
-  var val = document.getElementById('pw-input').value.trim();
-  var correct = atob('UkJJQXBwcm92YWxzMjAyNio=');
-  if (val === correct) {
-    sessionStorage.setItem('sarf_auth', '1');
-    document.getElementById('pw-gate').style.display = 'none';
-    loadData();
-  } else {
-    document.getElementById('pw-err').textContent = 'Incorrect password. Try again.';
-    document.getElementById('pw-input').value = '';
-    document.getElementById('pw-input').focus();
-  }
-}
-
-// Check auth on load
-window.onload = function() {
-  if (sessionStorage.getItem('sarf_auth') === '1') {
-    document.getElementById('pw-gate').style.display = 'none';
-    loadData();
-  } else {
-    document.getElementById('pw-gate').style.display = 'flex';
-  }
-};
+window.onload = function() { loadData(); };
 
 // Generate weekly report
 function generateReport() {

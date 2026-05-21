@@ -135,6 +135,26 @@ tr:last-child td{border-bottom:none}
 .row-clickable td:not(.step-cell){cursor:pointer}
 .row-clickable:hover td{background:var(--bg2)}
 .hint{font-size:11px;color:var(--text3);margin-bottom:8px;font-style:italic}
+
+/* Password gate */
+.pw-gate{position:fixed;inset:0;background:#1a1a18;display:flex;align-items:center;justify-content:center;z-index:999}
+.pw-box{background:#fff;border-radius:16px;padding:2.5rem 2rem;width:340px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.pw-box .pw-logo{width:48px;height:48px;background:var(--red);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;margin:0 auto 1rem}
+.pw-box h2{font-size:16px;font-weight:700;margin-bottom:4px}
+.pw-box p{font-size:13px;color:var(--text3);margin-bottom:1.25rem}
+.pw-input{width:100%;padding:10px 14px;border:1.5px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:var(--font);outline:none;text-align:center;letter-spacing:2px;margin-bottom:8px}
+.pw-input:focus{border-color:var(--blue)}
+.pw-btn{width:100%;padding:10px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.pw-btn:hover{background:var(--blue-dark)}
+.pw-err{font-size:12px;color:var(--red);margin-top:6px;min-height:16px}
+
+/* Weekly report modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:var(--radius-lg);padding:1.5rem;width:640px;max-width:95vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)}
+.modal-box h2{font-size:16px;font-weight:700;margin-bottom:1rem}
+.report-content{font-family:monospace;font-size:12px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;white-space:pre-wrap;max-height:400px;overflow-y:auto;line-height:1.6}
+.modal-actions{display:flex;gap:8px;margin-top:1rem;justify-content:flex-end}
 </style>
 </head>
 <body>
@@ -168,6 +188,7 @@ tr:last-child td{border-bottom:none}
     <div class="sidebar-footer">
       <button class="btn btn-primary" style="width:100%;font-size:12px" onclick="loadData()">&#8635; Refresh data</button>
       <button class="btn btn-green" style="width:100%" onclick="exportCSV()">&#8595; Export to Excel/CSV</button>
+      <button class="btn" style="width:100%;font-size:12px;background:#5f5e5a;color:#fff;border-color:#5f5e5a" onclick="generateReport()">&#128202; Generate weekly report</button>
     </div>
   </aside>
 
@@ -237,7 +258,7 @@ var ALL_STEPS = CORP_STEPS.concat(FAC_STEPS).concat(PROD_STEPS);
 // Cycle: X -> O -> 1 -> - -> X
 var STEP_CYCLE = ['X','O','1','-'];
 
-window.onload = function(){ loadData(); };
+// loadData called after auth check
 
 function loadData() {
   document.getElementById('table-container').innerHTML = '<div style="text-align:center;padding:2rem"><div class="spinner"></div><p style="font-size:13px;color:var(--text3);margin-top:8px">Loading submissions...</p></div>';
@@ -629,6 +650,177 @@ function closePanel() {
 function prow(l,v){ return '<div class="prow"><span class="pl">'+l+'</span><span class="pv">'+(v&&String(v).trim()?esc(String(v)):'<em style="color:var(--text3)">—</em>')+'</span></div>'; }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// Password gate
+var PW = 'RBIApprovals2026*';
+function checkPw() {
+  var val = document.getElementById('pw-input').value;
+  if (val === PW) {
+    sessionStorage.setItem('sarf_auth', '1');
+    document.getElementById('pw-gate').style.display = 'none';
+    loadData();
+  } else {
+    document.getElementById('pw-err').textContent = 'Incorrect password. Try again.';
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+}
+
+// Check auth on load
+window.onload = function() {
+  if (sessionStorage.getItem('sarf_auth') === '1') {
+    document.getElementById('pw-gate').style.display = 'none';
+    loadData();
+  } else {
+    document.getElementById('pw-gate').style.display = 'flex';
+  }
+};
+
+// Generate weekly report
+function generateReport() {
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-PH', {year:'numeric',month:'long',day:'numeric'});
+  var total = allRows.length;
+  var pending = allRows.filter(function(r){return (r.status||'').toLowerCase()==='pending';}).length;
+  var review = allRows.filter(function(r){return (r.status||'').toLowerCase()==='in review';}).length;
+  var approved = allRows.filter(function(r){var s=(r.status||'').toLowerCase();return s==='approved'||s==='conditionally approved';}).length;
+  var hold = allRows.filter(function(r){return (r.status||'').toLowerCase()==='on hold';}).length;
+  var asap = allRows.filter(function(r){return (r.priority||'').toLowerCase()==='asap';}).length;
+
+  var report = '';
+  report += 'PLK-RBI SUPPLIER APPROVAL REQUEST (SARF)
+';
+  report += 'Weekly Status Report — ' + dateStr + '
+';
+  report += '='.repeat(55) + '
+
+';
+
+  report += 'SUMMARY
+';
+  report += '-'.repeat(30) + '
+';
+  report += 'Total requests:    ' + total + '
+';
+  report += 'Pending:           ' + pending + '
+';
+  report += 'In review:         ' + review + '
+';
+  report += 'Approved:          ' + approved + '
+';
+  report += 'On hold:           ' + hold + '
+';
+  report += 'ASAP priority:     ' + asap + '
+
+';
+
+  // ASAP requests
+  var asapRows = allRows.filter(function(r){return (r.priority||'').toLowerCase()==='asap' && (r.status||'').toLowerCase()!=='approved';});
+  if (asapRows.length) {
+    report += 'URGENT / ASAP REQUESTS
+';
+    report += '-'.repeat(30) + '
+';
+    asapRows.forEach(function(r){
+      report += r.ref + ' | ' + (r.companyName||'—') + ' | ' + (r.category||'—') + ' | ' + Math.round((r.completion||0)*100) + '% complete
+';
+      if (r.remarks) report += '  Remarks: ' + r.remarks + '
+';
+    });
+    report += '
+';
+  }
+
+  // In review requests
+  var reviewRows = allRows.filter(function(r){return (r.status||'').toLowerCase()==='in review';});
+  if (reviewRows.length) {
+    report += 'IN REVIEW
+';
+    report += '-'.repeat(30) + '
+';
+    reviewRows.forEach(function(r){
+      report += r.ref + ' | ' + (r.companyName||'—') + ' | ' + (r.category||'—') + ' | ' + Math.round((r.completion||0)*100) + '% complete
+';
+      var steps = [];
+      var STEPS = ['CIW','MNDA','MPDA','MTC','CQ','FA','QAP','FIQ','Recipe Validation','RM Supplier'];
+      STEPS.forEach(function(s){
+        var v=(r.stepData[s]||'X').toString().toUpperCase();
+        if(v==='O') steps.push(s+':Ongoing');
+        else if(v==='1') steps.push(s+':Done');
+        else if(v!=='-') steps.push(s+':Pending');
+      });
+      report += '  Steps: ' + steps.join(' | ') + '
+';
+      if (r.remarks) report += '  Remarks: ' + r.remarks + '
+';
+    });
+    report += '
+';
+  }
+
+  // All active requests table
+  report += 'ALL ACTIVE REQUESTS
+';
+  report += '-'.repeat(30) + '
+';
+  report += ('Ref').padEnd(16) + ('Company').padEnd(28) + ('Category').padEnd(16) + ('Priority').padEnd(12) + ('Status').padEnd(22) + '%
+';
+  report += '-'.repeat(95) + '
+';
+  var active = allRows.filter(function(r){var s=(r.status||'').toLowerCase();return s!=='approved'&&s!=='rejected';});
+  active.forEach(function(r){
+    var ref = (r.ref||'').padEnd(16);
+    var co = (r.companyName||'—').substring(0,26).padEnd(28);
+    var cat = (r.category||'—').substring(0,14).padEnd(16);
+    var pri = (r.priority||'—').padEnd(12);
+    var st = (r.status||'Pending').padEnd(22);
+    var pct = Math.round((r.completion||0)*100)+'%';
+    report += ref + co + cat + pri + st + pct + '
+';
+  });
+
+  report += '
+' + '='.repeat(55) + '
+';
+  report += 'Generated by SARF Dashboard | PLK-RBI Procurement
+';
+
+  document.getElementById('report-content').textContent = report;
+  document.getElementById('report-modal').classList.add('open');
+}
+
+function copyReport() {
+  var text = document.getElementById('report-content').textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var btn = event.target;
+    btn.textContent = 'Copied!';
+    setTimeout(function(){ btn.textContent = 'Copy to clipboard'; }, 2000);
+  });
+}
 </script>
+
+<!-- Password Gate -->
+<div class="pw-gate" id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-logo">PLK</div>
+    <h2>SPEQ Approval Dashboard</h2>
+    <p>This dashboard is restricted.<br>Enter your password to continue.</p>
+    <input type="password" class="pw-input" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter')checkPw()" autofocus />
+    <button class="pw-btn" onclick="checkPw()">Unlock</button>
+    <div class="pw-err" id="pw-err"></div>
+  </div>
+</div>
+
+<!-- Weekly Report Modal -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal-box">
+    <h2>Weekly SPEQ Status Report</h2>
+    <div class="report-content" id="report-content"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="copyReport()">Copy to clipboard</button>
+      <button class="btn btn-primary" onclick="document.getElementById('report-modal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

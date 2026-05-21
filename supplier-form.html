@@ -269,25 +269,14 @@
       <button class="add-btn" onclick="addEntry()">+ Add another product / item</button>
     </div>
     <div class="card">
-      <div class="ct">Shared file / document link</div>
+      <div class="ct">Product specs &amp; file upload</div>
       <div class="f">
-        <label>Paste a link to your shared folder or file</label>
-        <input type="url" id="file-link" placeholder="e.g. https://drive.google.com/... or SharePoint / OneDrive link" />
-        <p style="font-size:11px;color:var(--text3);margin-top:5px">Link the folder where spec sheets, quotations, and attachments are stored. Any URL works - Google Drive, SharePoint, OneDrive, Dropbox, etc.</p>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:10px">Upload your product spec sheets and supporting documents to the shared SharePoint folder, then paste the link to your specific file or folder below.</p>
+        <a href="https://popeyesphps-my.sharepoint.com/:f:/g/personal/maabanilla_popeyes_ph/IgAowIf8qiGiRZGs0P1YnbknATxhYk86rRZYhaBFyBaZDmI?e=MfkLLk" target="_blank" style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:#0078D4;color:#fff;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:14px;">&#128194; Open SARF Product Specs folder</a>
+        <label>Paste your file or folder link here <span class="req">*</span></label>
+        <input type="url" id="file-link" placeholder="Paste your SharePoint file or folder link here..." />
+        <p style="font-size:11px;color:var(--text3);margin-top:5px">After uploading to SharePoint, copy the link to your file/folder and paste it above so the approver can access your documents directly.</p>
       </div>
-    </div>
-    <div class="card">
-      <div class="ct">Other supporting documents</div>
-      <div class="f">
-        <div class="fz">
-          <input type="file" accept=".pdf,.jpg,.jpeg,.png,.docx,.xlsx" multiple onchange="addOther(this)" />
-          <div class="fz-icon">📎</div>
-          <p>Quotations, certifications, company profile, etc.</p>
-          <small>PDF, Word, Excel, JPG, PNG</small>
-        </div>
-        <div class="fl" id="fl-other"></div>
-      </div>
-      <p style="font-size:12px;color:var(--text3);margin-top:8px">Note: files are listed for reference. Actual file submission requires email or shared drive — include a note in the form if needed.</p>
     </div>
     <div class="nr">
       <button class="btn btn-ghost" onclick="goStep(0)">‹ Back</button>
